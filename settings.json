@@ -1,92 +1,43 @@
-{
-  "name": "AFK Bot",
-  "bot-account": {
-    "username": "imgonnacream",
-    "password": "",
-    "type": "offline"
-  },
-  "server": {
-    "ip": "Minesathsilu.aternos.me:46979",
-    "port": 46979,
-    "version": "",
-    "try-creative": false
-  },
-  "position": {
-    "enabled": true,
-    "x": 0,
-    "y": 100,
-    "z": 0
-  },
-  "utils": {
-    "auto-auth": {
-      "enabled": true,
-      "password": "chalol78"
-    },
-    "anti-afk": {
-      "enabled": true,
-      "sneak": true
-    },
-    "chat-messages": {
-      "enabled": true,
-      "repeat": true,
-      "repeat-delay": 120,
-      "messages": [
-        "I'm a regular player",
-        "Subscribe to Slobos!",
-        "I like to play Minecraft!"
-      ]
-    },
-    "chat-log": true,
-    "auto-reconnect": true,
-    "auto-reconnect-delay": 2000,
-    "max-reconnect-delay": 120000,
-    "periodic-rejoin": {
-      "enabled": false,
-      "min-interval": 20,
-      "max-interval": 60
-    }
-  },
-  "movement": {
-    "enabled": true,
-    "circle-walk": {
-      "enabled": true,
-      "radius": 4,
-      "speed": 3000
-    },
-    "look-around": {
-      "enabled": true,
-      "interval": 5000
-    },
-    "random-jump": {
-      "enabled": true,
-      "interval": 10000
-    }
-  },
-  "modules": {
-    "avoidMobs": true,
-    "combat": true,
-    "beds": false,
-    "chat": true,
-    "console-commands": true
-  },
-  "combat": {
-    "attack-mobs": true,
-    "auto-eat": true
-  },
-  "beds": {
-    "pick-up-day": false,
-    "place-night": false
-  },
-  "discord": {
-    "enabled": false,
-    "webhookUrl": "YOUR_DISCORD_WEBHOOK_URL_HERE",
-    "events": {
-      "connect": true,
-      "disconnect": true,
-      "chat": false
-    }
-  },
-  "chat": {
-    "respond": true
-  }
+const express = require('express');
+const mineflayer = require('mineflayer');
+
+// 1. Web Server (Glitch එක Sleep වීම වැළැක්වීමට)
+const app = express();
+app.get('/', (req, res) => res.send('AFK Bot Online!'));
+app.listen(3000, () => console.log('Web server ready on port 3000'));
+
+// 2. Server Details
+const BOT_CONFIG = {
+  host: 'YOUR_ATERNOS_SERVER.aternos.me', // ඔයාගේ Aternos IP එක
+  port: 25565,                             // ඔයාගේ Port එක
+  username: 'AFK_Bot_247'                 // Bot ගේ නම
+};
+
+function createBot() {
+  const bot = mineflayer.createBot(BOT_CONFIG);
+
+  bot.on('spawn', () => {
+    console.log('Bot server එකට connect වුණා!');
+
+    // Anti-AFK Loop: තප්පර 15කට සැරයක් ජම්ප් කිරීම සහ ඔලුව කරකැවීම
+    setInterval(() => {
+      bot.setControlState('jump', true);
+      setTimeout(() => bot.setControlState('jump', false), 500);
+
+      // Random rotation (වටපිට බැලීම)
+      const yaw = Math.random() * Math.PI * 2;
+      const pitch = (Math.random() - 0.5) * Math.PI;
+      bot.look(yaw, pitch, true);
+    }, 15000);
+  });
+
+  // Server disconnected වුණොත් Auto Reconnect වීම
+  bot.on('end', () => {
+    console.log('Server disconnected! තප්පර 10කින් ආයෙත් connect වෙනවා...');
+    setTimeout(createBot, 10000);
+  });
+
+  bot.on('error', (err) => console.log('Bot Error:', err));
 }
+
+createBot();
